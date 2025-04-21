@@ -198,18 +198,30 @@ const ColoringPage: React.FC = () => {
       return;
     }
     
-    // Use a queue-based approach (more efficient for large areas)
-    const pixelsToCheck: [number, number][] = [[x, y]];
-    const visited = new Set<string>();
+    // Use a typed array for better performance
+    const visitedArray = new Uint8Array(width * height);
     
-    while (pixelsToCheck.length > 0) {
-      const [currX, currY] = pixelsToCheck.pop()!;
-      const key = `${currX},${currY}`;
+    // Create a queue for pixels to check (reuse arrays to avoid GC)
+    const queue = new Int32Array(width * height * 4); // x,y pairs
+    let queueStart = 0;
+    let queueEnd = 2;
+    
+    // Add starting pixel
+    queue[0] = x;
+    queue[1] = y;
+    
+    while (queueStart < queueEnd) {
+      const currX = queue[queueStart++];
+      const currY = queue[queueStart++];
       
-      if (visited.has(key)) continue;
-      visited.add(key);
+      // Calculate index in the visited array
+      const visitedIdx = currY * width + currX;
       
-      const idx = (currY * width + currX) * 4;
+      // Skip if already visited
+      if (visitedArray[visitedIdx] === 1) continue;
+      visitedArray[visitedIdx] = 1;
+      
+      const idx = visitedIdx * 4;
       const currentPixelColor: [number, number, number, number] = [
         data[idx],
         data[idx + 1],
@@ -228,18 +240,24 @@ const ColoringPage: React.FC = () => {
       data[idx + 2] = fillColor[2];
       data[idx + 3] = 255; // Keep full opacity
       
-      // Add adjacent pixels to check (all 8 directions)
-      // Cardinal directions (up, down, left, right)
-      if (currX > 0) pixelsToCheck.push([currX - 1, currY]);
-      if (currX < width - 1) pixelsToCheck.push([currX + 1, currY]);
-      if (currY > 0) pixelsToCheck.push([currX, currY - 1]);
-      if (currY < height - 1) pixelsToCheck.push([currX, currY + 1]);
-      
-      // Diagonal directions
-      if (currX > 0 && currY > 0) pixelsToCheck.push([currX - 1, currY - 1]); // top-left
-      if (currX < width - 1 && currY > 0) pixelsToCheck.push([currX + 1, currY - 1]); // top-right
-      if (currX > 0 && currY < height - 1) pixelsToCheck.push([currX - 1, currY + 1]); // bottom-left
-      if (currX < width - 1 && currY < height - 1) pixelsToCheck.push([currX + 1, currY + 1]); // bottom-right
+      // Add adjacent pixels - check only 4 cardinal directions for better performance
+      // Note: For most coloring cases, 4-way fill looks better than 8-way fill
+      if (currX > 0) {
+        queue[queueEnd++] = currX - 1;
+        queue[queueEnd++] = currY;
+      }
+      if (currX < width - 1) {
+        queue[queueEnd++] = currX + 1;
+        queue[queueEnd++] = currY;
+      }
+      if (currY > 0) {
+        queue[queueEnd++] = currX;
+        queue[queueEnd++] = currY - 1;
+      }
+      if (currY < height - 1) {
+        queue[queueEnd++] = currX;
+        queue[queueEnd++] = currY + 1;
+      }
     }
   };
 
