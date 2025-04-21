@@ -198,6 +198,11 @@ const ColoringPage: React.FC = () => {
       return;
     }
     
+    // Prevent filling black or near-black pixels to preserve outlines
+    if (isBlackOrNearBlack(startColor)) {
+      return;
+    }
+    
     // Use a typed array for better performance
     const visitedArray = new Uint8Array(width * height);
     
@@ -273,6 +278,13 @@ const ColoringPage: React.FC = () => {
       Math.abs(a[2] - b[2]) < tolerance &&
       Math.abs(a[3] - b[3]) < tolerance
     );
+  };
+
+  // Helper function to check if a color is black or near-black
+  const isBlackOrNearBlack = (color: [number, number, number, number]): boolean => {
+    const [r, g, b] = color;
+    const threshold = 10; // +/- 10 color units as specified
+    return r <= threshold && g <= threshold && b <= threshold;
   };
 
   const handleStartDrawing = (e: React.MouseEvent | React.TouchEvent) => {

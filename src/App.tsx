@@ -6,7 +6,7 @@ import ColoringPage from './pages/ColoringPage';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/coloring-frontend">
       <div className="app">
         <Routes>
           <Route path="/" element={<Gallery />} />
