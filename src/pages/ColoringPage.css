@@ -1,0 +1,80 @@
+.coloring-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.coloring-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.back-button {
+  background-color: #6c757d;
+}
+
+.action-buttons {
+  display: flex;
+}
+
+.image-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.coloring-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.svg-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.svg-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 100%;
+  touch-action: none;
+}
+
+svg {
+  max-width: 100%;
+  max-height: 100%;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .coloring-workspace {
+    flex-direction: column;
+  }
+  
+  .coloring-header {
+    padding: 5px 10px;
+  }
+  
+  .image-title {
+    font-size: 1rem;
+  }
+  
+  .svg-container {
+    width: 100%;
+    height: 70vh;
+  }
+}

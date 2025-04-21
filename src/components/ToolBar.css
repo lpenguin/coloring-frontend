@@ -1,0 +1,62 @@
+.toolbar {
+  width: 80px;
+  height: 100%;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.tool-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.tool-item:hover {
+  background-color: #e9ecef;
+}
+
+.tool-item.selected {
+  background-color: #dee2e6;
+  font-weight: bold;
+}
+
+.tool-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.tool-label {
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    width: 100%;
+    height: 70px;
+    flex-direction: row;
+    justify-content: center;
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .tool-item {
+    flex-direction: row;
+    margin-bottom: 0;
+    margin-right: 15px;
+    padding: 5px 15px;
+  }
+  
+  .tool-icon {
+    margin-bottom: 0;
+    margin-right: 8px;
+  }
+}
