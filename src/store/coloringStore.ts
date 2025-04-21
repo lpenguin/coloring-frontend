@@ -1,5 +1,5 @@
 import create from 'zustand';
-import axios from 'axios';
+import imagesData from '../data/images.json';
 
 export type Tool = 'brush' | 'fill';
 export type Image = {
@@ -9,25 +9,33 @@ export type Image = {
   svgData?: string;
 };
 
+export type SavedDrawing = {
+  id: number;
+  imageId: number;
+  imageData: string; // Changed from svgData to imageData for PNG storage
+  timestamp: number;
+}
+
 interface ColoringState {
   currentColor: string;
   currentTool: Tool;
   images: Image[];
   currentImage: Image | null;
-  savedDrawings: any[];
+  savedDrawings: SavedDrawing[];
   isLoading: boolean;
   error: string | null;
   
   setColor: (color: string) => void;
   setTool: (tool: Tool) => void;
-  fetchImages: () => Promise<void>;
-  fetchImageById: (id: number) => Promise<void>;
-  saveDrawing: (svgData: string) => Promise<void>;
-  fetchSavedDrawings: () => Promise<void>;
+  fetchImages: () => void;
+  fetchImageById: (id: number) => void;
+  saveDrawing: (imageData: string) => void; // Changed to accept imageData (PNG data URL)
+  fetchSavedDrawings: () => void;
   clearError: () => void;
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+// Key for localStorage
+const SAVED_DRAWINGS_KEY = 'coloringApp_savedDrawings';
 
 export const useColoringStore = create<ColoringState>((set, get) => ({
   currentColor: '#FF0000',
@@ -41,50 +49,65 @@ export const useColoringStore = create<ColoringState>((set, get) => ({
   setColor: (color) => set({ currentColor: color }),
   setTool: (tool) => set({ currentTool: tool }),
   
-  fetchImages: async () => {
+  fetchImages: () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE_URL}/images`);
-      set({ images: response.data, isLoading: false });
+      // Use the local JSON file instead of API calls
+      set({ images: imagesData, isLoading: false });
     } catch (error) {
       set({ error: 'Failed to load images', isLoading: false });
       console.error('Error fetching images:', error);
     }
   },
   
-  fetchImageById: async (id) => {
+  fetchImageById: (id) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE_URL}/images/${id}`);
-      set({ currentImage: response.data, isLoading: false });
+      const image = imagesData.find(img => img.id === id);
+      if (image) {
+        set({ currentImage: image, isLoading: false });
+      } else {
+        throw new Error('Image not found');
+      }
     } catch (error) {
       set({ error: 'Failed to load image', isLoading: false });
       console.error('Error fetching image:', error);
     }
   },
   
-  saveDrawing: async (svgData) => {
+  saveDrawing: (imageData) => {
     set({ isLoading: true, error: null });
     try {
-      const { currentImage } = get();
+      const { currentImage, savedDrawings } = get();
       if (!currentImage) throw new Error('No image selected');
       
-      await axios.post(`${API_BASE_URL}/save`, {
+      // Create a new saved drawing with PNG data
+      const newDrawing: SavedDrawing = {
+        id: Date.now(), // Use timestamp as ID
         imageId: currentImage.id,
-        svgData
-      });
-      set({ isLoading: false });
+        imageData, // Store the PNG data URL
+        timestamp: Date.now()
+      };
+      
+      // Add to state
+      const updatedDrawings = [...savedDrawings, newDrawing];
+      set({ savedDrawings: updatedDrawings, isLoading: false });
+      
+      // Save to localStorage
+      localStorage.setItem(SAVED_DRAWINGS_KEY, JSON.stringify(updatedDrawings));
     } catch (error) {
       set({ error: 'Failed to save drawing', isLoading: false });
       console.error('Error saving drawing:', error);
     }
   },
   
-  fetchSavedDrawings: async () => {
+  fetchSavedDrawings: () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE_URL}/saved`);
-      set({ savedDrawings: response.data, isLoading: false });
+      // Load from localStorage
+      const savedData = localStorage.getItem(SAVED_DRAWINGS_KEY);
+      const savedDrawings = savedData ? JSON.parse(savedData) : [];
+      set({ savedDrawings, isLoading: false });
     } catch (error) {
       set({ error: 'Failed to load saved drawings', isLoading: false });
       console.error('Error fetching saved drawings:', error);
