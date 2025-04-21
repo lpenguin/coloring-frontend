@@ -11,6 +11,9 @@ interface PixelData {
   data: ImageData;
 }
 
+// Color comparison tolerance constant
+const COLOR_TOLERANCE = 128;
+
 const ColoringPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -191,7 +194,7 @@ const ColoringPage: React.FC = () => {
     ];
     
     // If already the same color, no need to fill
-    if (colorsEqual(startColor, fillColor)) {
+    if (colorsEqualWithTolerance(startColor, fillColor, COLOR_TOLERANCE)) {
       return;
     }
     
@@ -207,32 +210,50 @@ const ColoringPage: React.FC = () => {
       visited.add(key);
       
       const idx = (currY * width + currX) * 4;
+      const currentPixelColor: [number, number, number, number] = [
+        data[idx],
+        data[idx + 1],
+        data[idx + 2],
+        data[idx + 3]
+      ];
       
-      // Check if this pixel has the start color
-      if (!colorsEqual([data[idx], data[idx + 1], data[idx + 2], data[idx + 3]], startColor)) {
+      // Check if this pixel has a color similar to the start color
+      if (!colorsEqualWithTolerance(currentPixelColor, startColor, COLOR_TOLERANCE)) {
         continue;
       }
       
-      // Fill the pixel
+      // Apply the color
       data[idx] = fillColor[0];
       data[idx + 1] = fillColor[1];
       data[idx + 2] = fillColor[2];
-      data[idx + 3] = fillColor[3];
+      data[idx + 3] = 255; // Keep full opacity
       
-      // Add adjacent pixels to check
+      // Add adjacent pixels to check (all 8 directions)
+      // Cardinal directions (up, down, left, right)
       if (currX > 0) pixelsToCheck.push([currX - 1, currY]);
       if (currX < width - 1) pixelsToCheck.push([currX + 1, currY]);
       if (currY > 0) pixelsToCheck.push([currX, currY - 1]);
       if (currY < height - 1) pixelsToCheck.push([currX, currY + 1]);
+      
+      // Diagonal directions
+      if (currX > 0 && currY > 0) pixelsToCheck.push([currX - 1, currY - 1]); // top-left
+      if (currX < width - 1 && currY > 0) pixelsToCheck.push([currX + 1, currY - 1]); // top-right
+      if (currX > 0 && currY < height - 1) pixelsToCheck.push([currX - 1, currY + 1]); // bottom-left
+      if (currX < width - 1 && currY < height - 1) pixelsToCheck.push([currX + 1, currY + 1]); // bottom-right
     }
   };
 
-  const colorsEqual = (a: [number, number, number, number], b: [number, number, number, number]): boolean => {
+  // Helper function for comparing colors with tolerance
+  const colorsEqualWithTolerance = (
+    a: [number, number, number, number], 
+    b: [number, number, number, number], 
+    tolerance: number
+  ): boolean => {
     return (
-      Math.abs(a[0] - b[0]) < 10 &&
-      Math.abs(a[1] - b[1]) < 10 &&
-      Math.abs(a[2] - b[2]) < 10 &&
-      Math.abs(a[3] - b[3]) < 10
+      Math.abs(a[0] - b[0]) < tolerance &&
+      Math.abs(a[1] - b[1]) < tolerance &&
+      Math.abs(a[2] - b[2]) < tolerance &&
+      Math.abs(a[3] - b[3]) < tolerance
     );
   };
 
