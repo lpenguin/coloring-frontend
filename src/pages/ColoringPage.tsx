@@ -22,7 +22,6 @@ const ColoringPage: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number, y: number } | null>(null);
   const [pixelData, setPixelData] = useState<PixelData | null>(null);
-  const [scale, setScale] = useState(1);
   
   const { 
     currentColor, 
@@ -58,15 +57,6 @@ const ColoringPage: React.FC = () => {
       // Set canvas dimensions to match the image
       canvas.width = img.width;
       canvas.height = img.height;
-      
-      // Calculate the scale for display
-      const containerWidth = canvas.parentElement?.clientWidth || window.innerWidth;
-      const containerHeight = canvas.parentElement?.clientHeight || window.innerHeight;
-      const scaleX = containerWidth / img.width;
-      const scaleY = containerHeight / img.height;
-      const newScale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 1
-      
-      setScale(newScale);
       
       // Draw the image
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -375,7 +365,6 @@ const ColoringPage: React.FC = () => {
             <canvas
               ref={canvasRef}
               style={{
-                transform: `scale(${scale})`,
                 transformOrigin: 'top left'
               }}
             />
