@@ -101,11 +101,15 @@ const ColoringPage: React.FC = () => {
       clientY = e.clientY;
     }
     
-    // Convert to canvas coordinates (accounting for scaling)
-    const x = (clientX - rect.left) / scale;
-    const y = (clientY - rect.top) / scale;
+    // Calculate CSS scaling (actual displayed size vs. internal canvas size)
+    const cssScaleX = rect.width / canvas.width;
+    const cssScaleY = rect.height / canvas.height;
     
-    return { x, y };
+    // Convert mouse position from screen coordinates to canvas coordinates
+    const canvasX = Math.round((clientX - rect.left) / cssScaleX);
+    const canvasY = Math.round((clientY - rect.top) / cssScaleY);
+
+    return { x: canvasX, y: canvasY };
   };
 
   const drawDot = (x: number, y: number) => {
